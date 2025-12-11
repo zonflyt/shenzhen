@@ -11,11 +11,11 @@
         
         body {
             margin: 0;
-            padding: 0; /* 移除内边距，实现全屏 */
+            padding: 0;
             background-color: #f0ebe5;
             font-family: 'Noto Serif SC', serif;
             color: #5d5d5d;
-            overflow: hidden; /* 防止出现滚动条 */
+            overflow: hidden;
             height: 100vh;
             width: 100vw;
         }
@@ -28,10 +28,9 @@
 
         .scroll-container {
             width: 100%;
-            height: 100%; /* 撑满高度 */
+            height: 100%;
             background: #fffcf5;
             position: relative;
-            /* 移除之前的边框和阴影，因为现在是全屏背景 */
             border: none;
             border-radius: 0;
         }
@@ -42,7 +41,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            opacity: 0.04; /* 稍微加深一点纹理 */
+            opacity: 0.04;
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
             pointer-events: none;
             z-index: 0;
@@ -53,12 +52,12 @@
             top: 30px;
             left: 40px;
             z-index: 10;
-            pointer-events: none; /* 让鼠标事件穿透到图表 */
+            pointer-events: none;
         }
 
         h1 {
             margin: 0;
-            font-size: clamp(1.5rem, 4vw, 2.2rem); /* 稍微调大字体 */
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
             color: #2c3e50;
             letter-spacing: 0.1em;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
@@ -122,6 +121,111 @@
             pointer-events: none;
             text-shadow: 0 1px 2px rgba(255,255,255,0.8);
         }
+
+        /* ===== 新增交互：时光胶囊模态框样式 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 62, 80, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .time-capsule {
+            background: #fffcf5;
+            width: 90%;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid #dcd6cc;
+            text-align: center;
+        }
+
+        .modal-overlay.active .time-capsule {
+            transform: translateY(0);
+        }
+
+        .time-capsule::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 1px solid #e8e8e8;
+            pointer-events: none;
+        }
+
+        .capsule-year {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #e67e22;
+            margin-bottom: 5px;
+            font-family: 'Noto Serif SC', serif;
+            opacity: 0.9;
+        }
+
+        .capsule-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .capsule-content {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #aaa;
+            transition: color 0.2s;
+            z-index: 101;
+        }
+
+        .close-modal:hover {
+            color: #2c3e50;
+        }
+
+        /* 提示小动画 */
+        .click-hint {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44, 62, 80, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 20;
+        }
     </style>
 </head>
 <body>
@@ -130,17 +234,34 @@
         <div class="scroll-container">
             <div class="texture-overlay"></div>
             <div class="header-info">
-                <!-- 标题已更新 -->
                 <h1>深圳 · 山海连城：城市建成区变化</h1>
                 <div class="subtitle">Shenzhen Urban Expansion & Built-up Area (1985-2020)</div>
             </div>
             <div class="controls">
                 <button class="btn" onclick="replay()">重绘长卷 / Replay</button>
             </div>
+            
             <div id="chart"></div>
+            
             <div class="footer-note">
-                数据来源：EE-Chart Dataset · 单位：平方公里 (km²) · 包含 1985-2013 实测数据及后续趋势推演
+                点击图表中的图标探索历史 · 数据来源：EE-Chart Dataset
             </div>
+
+            <!-- 点击提示气泡 -->
+            <div id="clickHint" class="click-hint">点击图标打开时光胶囊</div>
+        </div>
+    </div>
+
+    <!-- 模态框结构 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="time-capsule">
+            <div class="close-modal" onclick="closeModal()">×</div>
+            <div class="capsule-year" id="modalYear">1985</div>
+            <div class="capsule-title" id="modalTitle">渔村起步</div>
+            <div class="capsule-content" id="modalContent">
+                内容加载中...
+            </div>
+            <div style="font-size: 0.8rem; color: #999; margin-top: 10px;">—— 深圳城市记忆 ——</div>
         </div>
     </div>
 
@@ -188,6 +309,16 @@
         const xData = rawData.map(item => item.year);
         const yData = rawData.map(item => item.value);
 
+        // ===== 历史故事数据 (时光胶囊内容) =====
+        const stories = {
+            '1985': "1980年代初，深圳经济特区成立。彼时的深圳还只是一个边陲农业县，罗湖区的国贸大厦刚刚动工，“三天一层楼”的“深圳速度”正在酝酿。城市骨架开始沿着深南大道向西延伸，蛇口工业区的一声炮响，拉开了中国改革开放的序幕。",
+            '1992': "1992年邓小平南巡，发表了著名的“南方谈话”，深圳掀起了新一轮的建设狂潮。证券交易所的喧嚣、遍地开花的工地，城市建成区面积迅速突破100平方公里。数以百万计的“闯海人”涌入这片热土，追寻梦想。",
+            '2000': "千禧之年，深圳确立了高新技术产业为支柱产业。华强北成为“中国电子第一街”，腾讯等科技巨头在此萌芽。城市重心继续西移，南山科技园初具规模，“深圳制造”开始向“深圳智造”转型。",
+            '2004': "2004年12月28日，深圳地铁1号线、4号线正式开通，深圳迈入“地铁时代”。地下交通大动脉的打通，极大地拉伸了城市骨架，关内外的心理距离开始消融，城市化进程全面加速。",
+            '2011': "第26届世界大学生夏季运动会在深圳举办，深圳湾体育中心“春茧”破茧成蝶。后海、前海片区填海造地，摩天大楼拔地而起。深圳不仅是经济奇迹，更开始向世界展示其作为现代化滨海城市的魅力。",
+            '2020': "深圳经济特区建立40周年。此时的深圳已是粤港澳大湾区的核心引擎，建设中国特色社会主义先行示范区。前海蛇口自贸区生机勃勃，光明科学城布局未来。从47平方公里到800+平方公里，这座城市用40年走过了国外大城市上百年的历程。"
+        };
+
         // ===== 自定义SVG符号 =====
         function createSymbols() {
             return {
@@ -207,7 +338,7 @@
 
         // ===== 背景图形 =====
         const bgGraphics = [
-            // 远山 (位置略微调整以适应全屏)
+            // 远山
             {
                 type: 'polygon',
                 shape: {
@@ -273,7 +404,7 @@
             backgroundColor: 'transparent',
             graphic: bgGraphics,
             grid: {
-                top: '25%', // 给标题留出更多空间
+                top: '25%', 
                 bottom: '12%',
                 left: '5%',
                 right: '4%',
@@ -290,10 +421,19 @@
                     color: '#333',
                     fontSize: 13
                 },
+                // 优化 Tooltip 提示
                 formatter: function(params) {
                     if (!params || params.length === 0) return '';
                     const item = params[0];
-                    return `<div style="text-align:center"><span style="font-weight:bold;font-size:1.1em">${item.axisValue}</span><br/><span style="color:#e67e22;font-size:1.3em">●</span> ${item.value} km²</div>`;
+                    // 检查这一年是否有 markPoint
+                    const year = item.axisValue;
+                    const hasStory = stories[year] !== undefined;
+                    
+                    let html = `<div style="text-align:center"><span style="font-weight:bold;font-size:1.1em">${item.axisValue}</span><br/><span style="color:#e67e22;font-size:1.3em">●</span> ${item.value} km²</div>`;
+                    if (hasStory) {
+                        html += `<div style="margin-top:5px; font-size:0.8em; color:#e67e22; border-top:1px dashed #ddd; padding-top:3px;">👆 点击图标查看历史</div>`;
+                    }
+                    return html;
                 }
             },
             dataZoom: [
@@ -306,9 +446,9 @@
                 {
                     type: 'slider',
                     show: true,
-                    bottom: 40, // 稍微上移，避开底部文字
+                    bottom: 40,
                     height: 10,
-                    borderColor: 'transparent', // 更加隐形
+                    borderColor: 'transparent',
                     backgroundColor: '#f5f5f5',
                     fillerColor: 'rgba(44, 62, 80, 0.1)',
                     handleStyle: {
@@ -359,7 +499,7 @@
                     smooth: true,
                     symbol: 'none',
                     lineStyle: {
-                        width: 3, // 加粗线条
+                        width: 3,
                         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                             {offset: 0, color: '#34495e'},
                             {offset: 0.5, color: '#16a085'},
@@ -375,7 +515,7 @@
                     },
                     data: yData,
                     markPoint: {
-                        symbolSize: [45, 45], // 稍微放大图标
+                        symbolSize: [45, 45],
                         label: {
                             show: true,
                             position: 'top',
@@ -393,7 +533,6 @@
                             lineHeight: 16,
                             shadowBlur: 5,
                             shadowColor: 'rgba(0,0,0,0.1)',
-                            // 关键修改：显示名称和数值
                             formatter: '{b}\n{c} km²'
                         },
                         data: [
@@ -413,6 +552,65 @@
 
         // ===== 渲染 =====
         myChart.setOption(option);
+
+        // ===== 交互逻辑 =====
+
+        // 监听鼠标移动，改变鼠标样式为手型（针对 MarkPoint）
+        myChart.getZr().on('mousemove', function (params) {
+            var pointInPixel = [params.offsetX, params.offsetY];
+            if (myChart.containPixel('grid', pointInPixel)) {
+                // 简单处理：如果在图表区域内，并不一定是指针，
+                // ECharts 对 markPoint 有内置的 cursor: 'pointer'，
+                // 但我们可以通过监听 click 事件来更精确控制
+            }
+        });
+
+        // 监听点击事件
+        myChart.on('click', function (params) {
+            // 确保点击的是 markPoint
+            if (params.componentType === 'markPoint') {
+                const year = params.data.coord[0];
+                const name = params.data.name;
+                const story = stories[year];
+
+                if (story) {
+                    showModal(year, name, story);
+                }
+            }
+        });
+
+        // 模态框控制函数
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalYear = document.getElementById('modalYear');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+
+        function showModal(year, title, content) {
+            modalYear.innerText = year;
+            modalTitle.innerText = title;
+            modalContent.innerText = content;
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        // 点击遮罩层关闭
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        // 页面加载后的提示动画
+        setTimeout(() => {
+            document.getElementById('clickHint').style.opacity = '1';
+            // 3秒后消失
+            setTimeout(() => {
+                document.getElementById('clickHint').style.opacity = '0';
+            }, 5000);
+        }, 3500); // 等待图表动画基本完成
 
         // 响应式
         window.addEventListener('resize', () => {
