@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>深圳长卷：城市生长的轨迹 (1985-2020)</title>
+    <title>深圳 · 山海连城：城市建成区变化 (1985-2020)</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
@@ -11,41 +11,29 @@
         
         body {
             margin: 0;
-            padding: 20px;
+            padding: 0; /* 移除内边距，实现全屏 */
             background-color: #f0ebe5;
             font-family: 'Noto Serif SC', serif;
             color: #5d5d5d;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            overflow: hidden; /* 防止出现滚动条 */
+            height: 100vh;
+            width: 100vw;
         }
 
         .main-wrapper {
             width: 100%;
-            max-width: 1600px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            height: 100%;
+            position: relative;
         }
 
         .scroll-container {
             width: 100%;
-            height: 400px;
+            height: 100%; /* 撑满高度 */
             background: #fffcf5;
             position: relative;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.04);
-            border: 1px solid #dcd6cc;
-            border-radius: 6px;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        @media (max-width: 768px) {
-            .scroll-container {
-                height: 300px;
-            }
+            /* 移除之前的边框和阴影，因为现在是全屏背景 */
+            border: none;
+            border-radius: 0;
         }
 
         .texture-overlay {
@@ -54,7 +42,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            opacity: 0.03;
+            opacity: 0.04; /* 稍微加深一点纹理 */
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
             pointer-events: none;
             z-index: 0;
@@ -62,44 +50,46 @@
 
         .header-info {
             position: absolute;
-            top: 20px;
-            left: 30px;
+            top: 30px;
+            left: 40px;
             z-index: 10;
+            pointer-events: none; /* 让鼠标事件穿透到图表 */
         }
 
         h1 {
             margin: 0;
-            font-size: clamp(1.2rem, 5vw, 1.8rem);
+            font-size: clamp(1.5rem, 4vw, 2.2rem); /* 稍微调大字体 */
             color: #2c3e50;
             letter-spacing: 0.1em;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
         }
 
         .subtitle {
-            margin-top: 5px;
-            font-size: 0.85rem;
+            margin-top: 8px;
+            font-size: 1rem;
             color: #888;
             font-style: italic;
         }
 
         .controls {
             position: absolute;
-            top: 20px;
-            right: 30px;
+            top: 30px;
+            right: 40px;
             z-index: 10;
         }
 
         .btn {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.9);
             border: 1px solid #aaa;
-            padding: 8px 16px;
+            padding: 10px 20px;
             font-family: 'Noto Serif SC', serif;
             cursor: pointer;
-            border-radius: 20px;
+            border-radius: 30px;
             transition: all 0.2s;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #555;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
         }
 
         .btn:hover {
@@ -121,11 +111,16 @@
         }
 
         .footer-note {
-            margin-top: 20px;
-            font-size: 0.8rem;
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            font-size: 0.85rem;
             color: #999;
             text-align: center;
-            line-height: 1.6;
+            z-index: 10;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
         }
     </style>
 </head>
@@ -135,16 +130,17 @@
         <div class="scroll-container">
             <div class="texture-overlay"></div>
             <div class="header-info">
-                <h1>深圳 · 城市生长</h1>
-                <div class="subtitle">Shenzhen Urban Expansion (1985-2020)</div>
+                <!-- 标题已更新 -->
+                <h1>深圳 · 山海连城：城市建成区变化</h1>
+                <div class="subtitle">Shenzhen Urban Expansion & Built-up Area (1985-2020)</div>
             </div>
             <div class="controls">
                 <button class="btn" onclick="replay()">重绘长卷 / Replay</button>
             </div>
             <div id="chart"></div>
-        </div>
-        <div class="footer-note">
-            数据来源：EE-Chart Dataset · 单位：平方公里 (km²) · 包含 1985-2013 实测数据及后续趋势推演
+            <div class="footer-note">
+                数据来源：EE-Chart Dataset · 单位：平方公里 (km²) · 包含 1985-2013 实测数据及后续趋势推演
+            </div>
         </div>
     </div>
 
@@ -194,12 +190,11 @@
 
         // ===== 自定义SVG符号 =====
         function createSymbols() {
-            const svgNS = "http://www.w3.org/2000/svg";
-            
             return {
                 boat: 'image://data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M8 28 Q20 32 32 28 L30 20 Q20 24 10 20 Z" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="20" y1="20" x2="20" y2="8" stroke="currentColor" stroke-width="1"/></svg>',
                 crane: 'image://data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect x="6" y="4" width="28" height="24" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="4" x2="12" y2="2" stroke="currentColor" stroke-width="1"/><line x1="20" y1="4" x2="20" y2="0" stroke="currentColor" stroke-width="1"/><line x1="28" y1="4" x2="28" y2="2" stroke="currentColor" stroke-width="1"/><circle cx="20" cy="28" r="4" fill="none" stroke="currentColor" stroke-width="1"/></svg>',
                 chip: 'image://data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect x="8" y="8" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="12" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1"/><line x1="8" y1="12" x2="4" y2="12" stroke="currentColor" stroke-width="1"/><line x1="8" y1="20" x2="4" y2="20" stroke="currentColor" stroke-width="1"/><line x1="8" y1="28" x2="4" y2="28" stroke="currentColor" stroke-width="1"/></svg>',
+                metro: 'image://data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M10 34 L30 34 L32 10 L8 10 Z" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="14" width="16" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="12" cy="28" r="2" fill="currentColor"/><circle cx="28" cy="28" r="2" fill="currentColor"/><line x1="16" y1="34" x2="24" y2="34" stroke="currentColor" stroke-width="2"/></svg>',
                 port: 'image://data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M4 32 L36 32 L34 36 L6 36 Z" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="20" width="10" height="12" fill="none" stroke="currentColor" stroke-width="1"/><line x1="12" y1="26" x2="22" y2="26" stroke="currentColor" stroke-width="0.8"/></svg>',
                 city: 'image://data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect x="10" y="12" width="8" height="20" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="22" y="8" width="8" height="24" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="16" r="1" fill="currentColor"/><circle cx="14" cy="22" r="1" fill="currentColor"/><circle cx="26" cy="12" r="1" fill="currentColor"/><circle cx="26" cy="20" r="1" fill="currentColor"/></svg>'
             };
@@ -212,13 +207,13 @@
 
         // ===== 背景图形 =====
         const bgGraphics = [
-            // 远山
+            // 远山 (位置略微调整以适应全屏)
             {
                 type: 'polygon',
                 shape: {
                     points: [
-                        [0, 0.6], [0.15, 0.5], [0.35, 0.62], [0.5, 0.45],
-                        [0.7, 0.58], [0.85, 0.48], [1, 0.55], [1, 1], [0, 1]
+                        [0, 0.55], [0.15, 0.45], [0.35, 0.57], [0.5, 0.40],
+                        [0.7, 0.53], [0.85, 0.43], [1, 0.50], [1, 1], [0, 1]
                     ]
                 },
                 style: {
@@ -228,7 +223,7 @@
                 left: 0,
                 top: 0,
                 right: 0,
-                bottom: '20%',
+                bottom: '15%',
                 z: -10
             },
             // 中景山
@@ -245,10 +240,31 @@
                     stroke: 'none'
                 },
                 left: 0,
-                top: '30%',
+                top: '25%',
                 right: 0,
                 bottom: 0,
                 z: -8
+            },
+            // 近景：海浪
+            {
+                type: 'polygon',
+                shape: {
+                    points: [
+                       [0, 0.85], [0.1, 0.88], [0.2, 0.84], [0.3, 0.89],
+                       [0.4, 0.85], [0.5, 0.88], [0.6, 0.83], [0.7, 0.89],
+                       [0.8, 0.84], [0.9, 0.88], [1, 0.85], [1, 1], [0, 1]
+                    ],
+                    smooth: 0.5
+                },
+                style: {
+                    fill: 'rgba(52, 152, 219, 0.05)',
+                    stroke: 'none'
+                },
+                left: 0,
+                top: '55%',
+                right: 0,
+                bottom: 0,
+                z: -5
             }
         ];
 
@@ -257,10 +273,10 @@
             backgroundColor: 'transparent',
             graphic: bgGraphics,
             grid: {
-                top: '22%',
-                bottom: '18%',
-                left: '8%',
-                right: '5%',
+                top: '25%', // 给标题留出更多空间
+                bottom: '12%',
+                left: '5%',
+                right: '4%',
                 containLabel: true
             },
             tooltip: {
@@ -290,16 +306,16 @@
                 {
                     type: 'slider',
                     show: true,
-                    bottom: 5,
-                    height: 12,
-                    borderColor: '#d3d3d3',
-                    backgroundColor: '#f0f0f0',
-                    fillerColor: 'rgba(230, 126, 34, 0.2)',
+                    bottom: 40, // 稍微上移，避开底部文字
+                    height: 10,
+                    borderColor: 'transparent', // 更加隐形
+                    backgroundColor: '#f5f5f5',
+                    fillerColor: 'rgba(44, 62, 80, 0.1)',
                     handleStyle: {
                         color: '#2c3e50',
-                        borderColor: '#7f8c8d'
+                        borderColor: '#fff'
                     },
-                    moveHandleSize: 8
+                    moveHandleSize: 6
                 }
             ],
             xAxis: {
@@ -309,15 +325,13 @@
                 axisLine: {
                     lineStyle: { color: '#7f8c8d', width: 1.5 }
                 },
-                axisTick: {
-                    show: false
-                },
+                axisTick: { show: false },
                 axisLabel: {
                     fontFamily: 'Noto Serif SC',
                     color: '#666',
                     interval: 4,
-                    margin: 12,
-                    fontSize: 11
+                    margin: 14,
+                    fontSize: 12
                 }
             },
             yAxis: {
@@ -335,62 +349,65 @@
                     color: '#999',
                     fontSize: 11
                 },
-                axisLine: {
-                    show: false
-                },
-                axisTick: {
-                    show: false
-                }
+                axisLine: { show: false },
+                axisTick: { show: false }
             },
             series: [
                 {
-                    name: 'Built-up Area',
+                    name: '建成区面积',
                     type: 'line',
                     smooth: true,
                     symbol: 'none',
                     lineStyle: {
-                        width: 2.5,
+                        width: 3, // 加粗线条
                         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                             {offset: 0, color: '#34495e'},
-                            {offset: 0.4, color: '#e67e22'},
+                            {offset: 0.5, color: '#16a085'},
                             {offset: 1, color: '#c0392b'}
                         ])
                     },
                     areaStyle: {
                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                             {offset: 0, color: 'rgba(230, 126, 34, 0.35)'},
-                            {offset: 1, color: 'rgba(230, 126, 34, 0.05)'}
+                            {offset: 0.8, color: 'rgba(230, 126, 34, 0.02)'},
+                            {offset: 1, color: 'rgba(255, 255, 255, 0)'}
                         ])
                     },
                     data: yData,
                     markPoint: {
-                        symbolSize: [35, 35],
+                        symbolSize: [45, 45], // 稍微放大图标
                         label: {
                             show: true,
                             position: 'top',
-                            distance: 10,
-                            backgroundColor: 'rgba(255,255,255,0.9)',
-                            padding: [4, 8],
-                            borderRadius: 3,
-                            borderColor: '#d3d3d3',
-                            borderWidth: 0.5,
+                            distance: 12,
+                            backgroundColor: 'rgba(255,255,255,0.95)',
+                            padding: [6, 10],
+                            borderRadius: 4,
+                            borderColor: '#dcdcdc',
+                            borderWidth: 1,
                             color: '#2c3e50',
                             fontFamily: 'Noto Serif SC',
                             fontWeight: 'bold',
-                            fontSize: 10,
-                            formatter: '{b}'
+                            fontSize: 11,
+                            align: 'center',
+                            lineHeight: 16,
+                            shadowBlur: 5,
+                            shadowColor: 'rgba(0,0,0,0.1)',
+                            // 关键修改：显示名称和数值
+                            formatter: '{b}\n{c} km²'
                         },
                         data: [
-                            {coord: ['1985', 47.33], name: '渔村起步', symbol: symbols.boat, itemStyle: {color: '#34495e'}},
-                            {coord: ['1992', 120.09], name: '建设狂潮', symbol: symbols.crane, itemStyle: {color: '#e67e22'}},
-                            {coord: ['2000', 425.67], name: '高新制造', symbol: symbols.chip, itemStyle: {color: '#27ae60'}},
-                            {coord: ['2011', 691.40], name: '港口大运', symbol: symbols.port, itemStyle: {color: '#2980b9'}},
-                            {coord: ['2020', 802.1], name: '国际都会', symbol: symbols.city, itemStyle: {color: '#8e44ad'}}
+                            {coord: ['1985', 47.33], value: 47.33, name: '渔村起步', symbol: symbols.boat, itemStyle: {color: '#34495e'}},
+                            {coord: ['1992', 120.09], value: 120.09, name: '建设狂潮', symbol: symbols.crane, itemStyle: {color: '#e67e22'}},
+                            {coord: ['2000', 425.67], value: 425.67, name: '高新制造', symbol: symbols.chip, itemStyle: {color: '#27ae60'}},
+                            {coord: ['2004', 543.76], value: 543.76, name: '地铁通车', symbol: symbols.metro, itemStyle: {color: '#16a085'}},
+                            {coord: ['2011', 691.40], value: 691.40, name: '港口大运', symbol: symbols.port, itemStyle: {color: '#2980b9'}},
+                            {coord: ['2020', 802.1], value: 802.1, name: '国际都会', symbol: symbols.city, itemStyle: {color: '#8e44ad'}}
                         ]
                     }
                 }
             ],
-            animationDuration: 3500,
+            animationDuration: 3000,
             animationEasing: 'cubicOut'
         };
 
